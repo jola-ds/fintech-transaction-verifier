@@ -54,9 +54,13 @@ def get_user_input():
             if api_key and reference:
                 return (api_key, reference)
 
-            # If input is invalid, print a warning
+                        # If input is invalid, print a warning
             remaining_attempts = MAX_INPUT_ATTEMPTS - (attempt + 1)
-            console.print(f"API Key and Reference cannot be empty.You have {remaining_attempts} attempts left.", style="bold red")
+            error_message = (
+                f"API Key and Reference cannot be empty. "
+                f"You have {remaining_attempts} attempts left."
+            )
+            console.print(error_message, style="bold red")
 
         except (KeyboardInterrupt, EOFError):
             # Handle Ctrl+C or Ctrl+D gracefully
