@@ -5,6 +5,7 @@ details of a given transaction reference. It prompts the user for their
 secret key and the transaction reference securely.
 """
 import getpass
+import sys
 import requests
 from rich.console import Console
 from rich.table import Table
@@ -37,7 +38,6 @@ def get_user_input():
     for attempt in range(MAX_INPUT_ATTEMPTS):
         try:
             console.print("\nType 'quit' or 'exit' at any time to leave.", style="dim yellow")
-            
             # Prompt for API Key
             api_key_prompt = "Enter your Paystack Secret Key: "
             api_key = getpass.getpass(prompt=api_key_prompt)
@@ -53,10 +53,10 @@ def get_user_input():
             # Check if input is valid
             if api_key and reference:
                 return (api_key, reference)
-            
+
             # If input is invalid, print a warning
             remaining_attempts = MAX_INPUT_ATTEMPTS - (attempt + 1)
-            console.print(f"API Key and Reference cannot be empty. You have {remaining_attempts} attempts left.", style="bold red")
+            console.print(f"API Key and Reference cannot be empty.You have {remaining_attempts} attempts left.", style="bold red")
 
         except (KeyboardInterrupt, EOFError):
             # Handle Ctrl+C or Ctrl+D gracefully
@@ -81,12 +81,12 @@ def verify_paystack(api_key, reference):
         'Authorization': f'Bearer {api_key}'
     }
     url = f"{PAYSTACK_API_URL}{reference}"
-    
+
     try:
         with console.status("[bold green]Verifying with Paystack...[/]"):
             response = requests.get(url, headers=headers, timeout=20)
             response.raise_for_status()  # Raise an exception for bad status codes (4xx or 5xx)
-        
+
         data = response.json()
         if data.get('status'):
             return data.get('data')
@@ -117,14 +117,14 @@ def display_results(data):
     # Paystack amount is in kobo (the smallest currency unit), so divide by 100
     amount = data.get('amount', 0) / 100
     currency = data.get('currency', '')
-    
+
     table.add_row("Status", status.title())
     table.add_row("Reference", data.get('reference', 'N/A'))
     table.add_row("Amount", f"{amount:,.2f} {currency}")
     table.add_row("Customer Email", data.get('customer', {}).get('email', 'N/A'))
     table.add_row("Transaction Date", data.get('paid_at', data.get('created_at', 'N/A')))
     table.add_row("Channel", data.get('channel', 'N/A'))
-    
+
     # Style the status row based on the result for clear visual feedback
     if status == 'success':
         table.rows[0].style = "bold green"
@@ -137,7 +137,7 @@ def display_results(data):
 def main():
     """Main function to run the verifier tool."""
     print_header()
-    
+
     while True:
         # Get input from the new, robust function
         api_key, reference = get_user_input()
@@ -153,7 +153,7 @@ def main():
         again = input("Do you want to verify another transaction? (y/n): ").lower()
         if again != 'y':
             break
-    
+
     console.print("Goodbye!", style="bold blue")
 
 
@@ -164,4 +164,3 @@ if __name__ == "__main__":
         # Catch Ctrl+C on the "verify another" prompt
         console.print("\nGoodbye!", style="bold blue")
         sys.exit(0)
-
