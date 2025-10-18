@@ -15,6 +15,7 @@ from rich.text import Text
 console = Console()
 
 PAYSTACK_API_URL = "https://api.paystack.co/transaction/verify/"
+MAX_INPUT_ATTEMPTS = 3
 
 def print_header():
     """Prints a stylish header for the application."""
@@ -24,7 +25,47 @@ def print_header():
         border_style="cyan"
     ))
     console.print()
-    
+
+def get_user_input():
+    """
+    Prompts the user for API key and reference, handling retries and quit commands.
+
+    Returns:
+        tuple: A tuple containing (api_key, reference) or (None, None) if the user quits
+               or fails to provide input after MAX_INPUT_ATTEMPTS.
+    """
+    for attempt in range(MAX_INPUT_ATTEMPTS):
+        try:
+            console.print("\nType 'quit' or 'exit' at any time to leave.", style="dim yellow")
+            
+            # Prompt for API Key
+            api_key_prompt = "Enter your Paystack Secret Key: "
+            api_key = getpass.getpass(prompt=api_key_prompt)
+            if api_key.lower() in ['quit', 'exit']:
+                return (None, None)
+
+            # Prompt for Reference
+            reference_prompt = "Enter the transaction reference: "
+            reference = input(reference_prompt)
+            if reference.lower() in ['quit', 'exit']:
+                return (None, None)
+
+            # Check if input is valid
+            if api_key and reference:
+                return (api_key, reference)
+            
+            # If input is invalid, print a warning
+            remaining_attempts = MAX_INPUT_ATTEMPTS - (attempt + 1)
+            console.print(f"API Key and Reference cannot be empty. You have {remaining_attempts} attempts left.", style="bold red")
+
+        except (KeyboardInterrupt, EOFError):
+            # Handle Ctrl+C or Ctrl+D gracefully
+            return (None, None)
+
+    # If the loop finishes, it means the user has run out of attempts
+    console.print("\nToo many failed attempts. Exiting.", style="bold red")
+    return (None, None)
+
 def verify_paystack(api_key, reference):
     """
     Verifies a transaction using the Paystack API.
@@ -98,18 +139,12 @@ def main():
     print_header()
     
     while True:
-        # Use getpass to securely ask for the secret key without showing it on screen
-        try:
-            api_key = getpass.getpass(prompt="Enter your Paystack Secret Key: ")
-        except Exception as error:
-            console.print(f"Could not read API key: {error}", style="bold red")
-            continue
+        # Get input from the new, robust function
+        api_key, reference = get_user_input()
 
-        reference = input("Enter the transaction reference: ")
-
-        if not api_key or not reference:
-            console.print("API Key and Reference cannot be empty.", style="bold red")
-            continue
+        # If the function returns None, the user wants to quit or has failed.
+        if not api_key:
+            break
 
         result_data = verify_paystack(api_key, reference)
         display_results(result_data)
@@ -117,11 +152,16 @@ def main():
         console.print("\n----------------------------------------\n", style="dim")
         again = input("Do you want to verify another transaction? (y/n): ").lower()
         if again != 'y':
-            console.print("Goodbye!", style="bold blue")
             break
-        console.print()
+    
+    console.print("Goodbye!", style="bold blue")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        # Catch Ctrl+C on the "verify another" prompt
+        console.print("\nGoodbye!", style="bold blue")
+        sys.exit(0)
 
