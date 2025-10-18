@@ -1,1 +1,29 @@
+pycache/
+*.pyc
+*.pyo
+*.pyd
 
+# Virtual Environments
+
+.venv/
+venv/
+env/
+.env/
+
+# Editor/IDE specific
+
+.vscode/
+.idea/
+*.suo
+.ntvs
+
+# OS files
+
+.DS_Store
+Thumbs.db
+
+# Security
+
+*.env
+config.ini
+secrets.yaml
