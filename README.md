@@ -57,7 +57,7 @@ To use this tool, you will need a **Test Secret Key** and a **Transaction Refere
 
 ```bash
 # Run the script from your terminal
-python paystack_verifier.py
+python transaction_verifier.py
 ```
 
 ## Technology
