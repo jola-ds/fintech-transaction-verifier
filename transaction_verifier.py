@@ -54,7 +54,7 @@ def get_user_input():
             if api_key and reference:
                 return (api_key, reference)
 
-                        # If input is invalid, print a warning
+            # If input is invalid, print a warning
             remaining_attempts = MAX_INPUT_ATTEMPTS - (attempt + 1)
             error_message = (
                 f"API Key and Reference cannot be empty. "
@@ -66,7 +66,7 @@ def get_user_input():
             # Handle Ctrl+C or Ctrl+D gracefully
             return (None, None)
 
-    # If the loop finishes, it means the user has run out of attempts
+    # If the loop finishes, the user has run out of attempts
     console.print("\nToo many failed attempts. Exiting.", style="bold red")
     return (None, None)
 
@@ -143,7 +143,7 @@ def main():
     print_header()
 
     while True:
-        # Get input from the new, robust function
+        # Get input
         api_key, reference = get_user_input()
 
         # If the function returns None, the user wants to quit or has failed.
